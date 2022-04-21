@@ -113,5 +113,4 @@ class WebScraping:
 
             formatted_results.append(object)
 
-        for i in formatted_results:
-            print(i)
+        return formatted_results
