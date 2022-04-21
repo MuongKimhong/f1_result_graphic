@@ -86,7 +86,6 @@ class WebScraping:
             if index == 0: 
                 race_leader_lap_time = result[3]
 
-            print(result)
             object = {
                 'position': "DNF" if result[0] == "Ret" else result[0],
                 'driver'  : result[1][3:],
@@ -94,5 +93,25 @@ class WebScraping:
                 'team': result[2],
                 'finished_laps': result[4],
                 'pits': result[5],
-                'lap_time': 
+                'race_leader_lap_time': race_leader_lap_time,
+                'gap_to_race_leader': result[3] if index > 0 else None    
             }
+            if index == 0:
+                object['lap_time_in_deciseconds'] = self.get_total_deciseconds(
+                    float(result[3].split(":")[2]), int(result[3].split(":")[1]), int(result[3].split(":")[0])
+                )
+            else:
+                object['lap_time_in_deciseconds'] = self.get_total_deciseconds(
+                    float(race_leader_lap_time.split(":")[2]), int(race_leader_lap_time.split(":")[1]), int(race_leader_lap_time.split(":")[0])
+                )
+                if result[3].find(":") == -1 and result[3].find("Lap") == -1:
+                    object['lap_time_in_deciseconds'] = object['lap_time_in_deciseconds'] + float(result[3][1:])
+                elif result[3].find(":") != -1:
+                    object['lap_time_in_deciseconds'] = self.get_total_deciseconds(
+                        float(race_leader_lap_time.split(":")[2]), int(race_leader_lap_time.split(":")[1]), int(race_leader_lap_time.split(":")[0])
+                    ) + self.get_total_deciseconds(float(result[3].split(":")[1]), int(result[3].split(":")[0])) 
+
+            formatted_results.append(object)
+
+        for i in formatted_results:
+            print(i)
