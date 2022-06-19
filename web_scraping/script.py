@@ -1,7 +1,11 @@
 import requests
+import os
 
+from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 from bs4 import BeautifulSoup
+
+from django.conf import settings
 
 
 class WebScraping:
@@ -102,15 +106,60 @@ class WebScraping:
                 )
             else:
                 object['lap_time_in_deciseconds'] = self.get_total_deciseconds(
-                    float(race_leader_lap_time.split(":")[2]), int(race_leader_lap_time.split(":")[1]), int(race_leader_lap_time.split(":")[0])
+                    float(
+                        race_leader_lap_time.split(":")[2]), 
+                        int(race_leader_lap_time.split(":")[1]), 
+                        int(race_leader_lap_time.split(":")[0])
                 )
-                if result[3].find(":") == -1 and result[3].find("Lap") == -1:
+                if result[3].find(":") == -1 and result[3].find("Lap") == -1 and result[0] != 'Ret':   
                     object['lap_time_in_deciseconds'] = object['lap_time_in_deciseconds'] + float(result[3][1:])
                 elif result[3].find(":") != -1:
                     object['lap_time_in_deciseconds'] = self.get_total_deciseconds(
-                        float(race_leader_lap_time.split(":")[2]), int(race_leader_lap_time.split(":")[1]), int(race_leader_lap_time.split(":")[0])
+                        float(race_leader_lap_time.split(":")[2]), 
+                        int(race_leader_lap_time.split(":")[1]), 
+                        int(race_leader_lap_time.split(":")[0])
                     ) + self.get_total_deciseconds(float(result[3].split(":")[1]), int(result[3].split(":")[0])) 
 
             formatted_results.append(object)
 
         return formatted_results
+
+
+class Graphic:
+    def __init__(self):
+        self.graphic_width  = 1400
+        self.graphic_height = 1400
+        self.graphic_background = (108, 122, 137)
+
+    def draw_laps(self, draw_object, total_laps, font):
+        lap_position = 90
+        lap_axis_length = self.graphic_width - (90 * 2)
+        lap_gap = lap_axis_length / total_laps
+
+        for i in range(total_laps):
+            draw_object.line(
+                (lap_position, 1310, lap_position, 1315), fill=(236, 240, 241), width=2
+            )
+            # draw number every 5 laps
+            if i % 5 == 0:
+                draw_object.text(
+                    (lap_position - 2, 1325), f"{i + 1}", font=font, fill=(255, 255, 255)
+                )
+            lap_position = lap_position + lap_gap
+
+    def generate_graphic(self, race_results):
+        blank_graphic = Image.new(
+            'RGB', (self.graphic_width, self.graphic_height), self.graphic_background
+        )
+        draw_object = ImageDraw.Draw(blank_graphic)
+        font = ImageFont.truetype(os.path.join(settings.BASE_DIR, 'assets/font.TTF'), 16)
+
+        # draw x y coordinate
+        draw_object.line((90, 90, 90, 1310), fill=(255, 76, 48), width=5)
+        draw_object.line((90, 1310, 1310, 1310), fill=(255, 76, 48), width=5)
+
+        # draw lap number on coordinate
+        total_laps = int(race_results[0]['finished_laps'])
+        self.draw_laps(draw_object, total_laps, font)
+
+        blank_graphic.show()

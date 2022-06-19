@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from web_scraping.script import WebScraping
+from web_scraping.script import WebScraping, Graphic
 
 
 class Command(BaseCommand):
@@ -10,5 +10,5 @@ class Command(BaseCommand):
         # 600014127 race id (bahrain) from ESPN Site
         f1_result = web_scraping.scrap_f1_result(600014127)
 
-        for data in f1_result:
-            print(data)
+        g = Graphic()
+        g.generate_graphic(f1_result)
