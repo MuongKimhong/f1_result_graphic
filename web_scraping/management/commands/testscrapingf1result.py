@@ -12,3 +12,6 @@ class Command(BaseCommand):
 
         g = Graphic()
         g.generate_graphic(f1_result)
+
+        for i in f1_result:
+            print(i)
