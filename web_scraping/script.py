@@ -147,6 +147,40 @@ class Graphic:
                 )
             lap_position = lap_position + lap_gap
 
+        return lap_position
+
+    def draw_drivers(self, blank_graphic, draw_object, race_results, lap_position):
+        r = race_results
+        r.reverse()
+
+        driver_position = None
+
+        for result in race_results[::-1]:
+            if result['driver_nickname'] == 'HUL':
+                driver_image = Image.open(
+                    os.path.join(settings.BASE_DIR / f"assets/drivers/VET.png")
+                )
+            else:
+                driver_image = Image.open(
+                    os.path.join(settings.BASE_DIR / f"assets/drivers/{result['driver_nickname']}.png")
+                )
+            width  = driver_image.width
+            height = driver_image.height
+
+            new_width  = 230
+            new_height = int((new_width * height) / width)
+
+            driver_image = driver_image.resize((new_width, new_height), Image.ANTIALIAS)
+            driver_image = driver_image.convert('RGBA')
+
+            if driver_position is None:
+                driver_position = 1310 - new_height            
+
+            lap_length = 1400
+            blank_graphic.paste(driver_image, (int(lap_position) - 200, int(driver_position) + 5), driver_image)
+            driver_gap = (self.graphic_width - (90 * 2)) / 20
+            driver_position = driver_position - driver_gap
+
     def draw_teams(self, blank_graphic, draw_object, race_results):
         total_drivers = 20
         team_axis_length = self.graphic_width - (90 * 2)
@@ -213,7 +247,8 @@ class Graphic:
 
         # draw lap number on coordinate
         total_laps = int(race_results[0]['finished_laps'])
-        self.draw_laps(draw_object, total_laps, font)
+        lap_position = self.draw_laps(draw_object, total_laps, font)
         self.draw_teams(blank_graphic, draw_object, race_results)
+        self.draw_drivers(blank_graphic, draw_object, race_results, lap_position)
 
         blank_graphic.show()
